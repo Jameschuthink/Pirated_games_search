@@ -23,6 +23,20 @@ interface User {
 }
 ```
 
+### Game Model
+
+```typescript
+interface Game {
+  id: string;
+  title: string;
+  source: string;
+  uris: string[];
+  size: string;
+  uploadDate: Date;
+  // Additional fields may be present depending on the source
+}
+```
+
 ### ServiceResponse Format
 
 All API responses follow this structure:
@@ -49,6 +63,23 @@ const UserSchema = z.object({
   updatedAt: z.date(),
 });
 
+// Game Schema
+const GameSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  source: z.string(),
+  uris: z.array(z.string()),
+  size: z.string(),
+  uploadDate: z.date(),
+});
+
+// Search Game Schema
+const SearchGameSchema = z.object({
+  query: z.object({
+    q: z.string().min(1, "Search query must be at least 1 character")
+  })
+});
+
 // Input Validation for GET users/:id
 const GetUserSchema = z.object({
   params: z.object({ id: z.string()
@@ -59,6 +90,75 @@ const GetUserSchema = z.object({
 ```
 
 ## Available API Endpoints
+
+### Game Endpoints
+
+#### GET /games/search
+
+**Description**: Search for games by title
+
+**Request**:
+- Method: GET
+- URL: `/games/search?q={searchTerm}`
+- Headers: None required
+- Query Parameters:
+  - `q` (required): Search query string (minimum 1 character)
+
+**Response**:
+```json
+{
+  "success": true,
+  "message": "Games found",
+  "responseObject": [
+    {
+      "id": "fitgirl-12345",
+      "title": "Cyberpunk 2077",
+      "source": "FitGirl",
+      "uris": ["https://fitgirl-repacks.site/cyberpunk-2077"],
+      "size": "65.8 GB",
+      "uploadDate": "2023-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "dodi-67890",
+      "title": "Cyberpunk 2077",
+      "source": "DODI",
+      "uris": ["https://dodi-repacks.site/cyberpunk-2077"],
+      "size": "68.2 GB",
+      "uploadDate": "2023-01-16T14:20:00.000Z"
+    }
+  ],
+  "statusCode": 200
+}
+```
+
+**Error Responses**:
+- 400: Invalid search query (empty or too short)
+- 404: No games found matching the search criteria
+- 500: Internal server error
+
+#### POST /games/sync
+
+**Description**: Trigger synchronization of game database with external sources
+
+**Request**:
+- Method: POST
+- URL: `/games/sync`
+- Headers: None required
+- Body: None
+
+**Response**:
+```json
+{
+  "success": true,
+  "message": "Database synced successfully",
+  "responseObject": null,
+  "statusCode": 200
+}
+```
+
+**Error Responses**:
+- 500: Internal server error during synchronization
+- 503: Service unavailable (external sources unreachable)
 
 ### GET /users
 
@@ -176,6 +276,21 @@ The backend is configured with:
 }
 ```
 
+### Sample Game Data
+
+```json
+{
+  "id": "fitgirl-cyberpunk-2077-v1.63",
+  "title": "Cyberpunk 2077 v1.63 + Phantom Liberty DLC + All Updates",
+  "source": "FitGirl",
+  "uris": [
+    "https://fitgirl-repacks.site/cyberpunk-2077-v1-63-phantom-liberty-dlc-all-updates/"
+  ],
+  "size": "65.8 GB",
+  "uploadDate": "2023-11-15T14:30:00.000Z"
+}
+```
+
 ### Sample Error Response
 
 ```json
@@ -199,6 +314,12 @@ The backend is configured with:
 
 - Must be valid email format
 - Uses Zod's built-in email validation
+
+### Game Search Validation
+
+- Search query (`q` parameter) must be at least 1 character long
+- Query string is automatically trimmed
+- Empty or whitespace-only queries are rejected
 
 ## Technical Stack Information
 
@@ -242,6 +363,14 @@ All API responses follow the ServiceResponse pattern:
 // PUT /users/:id - Update existing user
 // DELETE /users/:id - Delete user
 // POST /users/:id/inquiries - Submit user inquiry
+
+// Game-related future endpoints
+// GET /games/:id - Get specific game by ID
+// GET /games/sources - Get available game sources
+// POST /games - Add new game manually
+// PUT /games/:id - Update game information
+// DELETE /games/:id - Remove game from database
+// GET /games/filter - Filter games by source, size, date, etc.
 ```
 
 ### Extended User Model (Future)
@@ -262,6 +391,36 @@ interface ExtendedUser {
 }
 ```
 
+### Extended Game Model (Future)
+
+```typescript
+interface ExtendedGame {
+  // ... existing fields
+  description?: string;
+  version?: string;
+  language?: string;
+  requirements?: {
+    os: string;
+    processor: string;
+    memory: string;
+    graphics: string;
+    storage: string;
+  };
+  tags?: string[];
+  categories?: string[];
+  releaseDate?: Date;
+  lastUpdated?: Date;
+  downloadCount?: number;
+  rating?: number;
+  screenshots?: string[];
+  additionalSources?: Array<{
+    source: string;
+    uri: string;
+    size: string;
+  }>;
+}
+```
+
 ## Integration Checklist for Client-Side AI
 
 1. **API Base URL**: Use `http://localhost:8080` for development
@@ -271,6 +430,9 @@ interface ExtendedUser {
 5. **Data Types**: Convert ISO date strings to Date objects as needed
 6. **Validation**: Validate user input before sending to API
 7. **Loading States**: Implement proper loading states for API calls
+8. **Game Search**: Use URL-encoded query parameters for search terms
+9. **Pagination**: Be prepared for paginated responses (limit: 50 items per request)
+10. **Source Filtering**: Understand different game sources (FitGirl, DODI, etc.)
 
 ## Notes for Client-Side Implementation
 
@@ -279,5 +441,10 @@ interface ExtendedUser {
 - The API is designed to be extended with additional endpoints
 - CORS is strictly configured - ensure frontend origin matches exactly
 - No authentication is currently required, but this may change in future
+- Game search uses Meilisearch for fast, typo-tolerant search results
+- The `/games/sync` endpoint may take significant time to complete as it fetches data from external sources
+- Game data is sourced from multiple repack providers (FitGirl, DODI, etc.)
+- Consider implementing debouncing for search input to avoid excessive API calls
+- Search results are limited to 50 items per request for performance
 
 This documentation provides all the necessary information for the client-side AI to generate appropriate frontend code without making implementation recommendations.
