@@ -14,6 +14,7 @@ build
 dist-ssr
 *.local
 .env
+md_files/
 
 # Editor directories and files
 !.vscode/extensions.json
