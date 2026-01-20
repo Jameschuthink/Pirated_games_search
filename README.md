@@ -49,6 +49,19 @@ This project enables users to:
 
 ## 🛠️ Getting Started
 
+### 🚄 Railway Deployment (Simple!)
+
+Your app is already configured for Railway! Just:
+1. Connect your GitHub repo to Railway
+2. Railway automatically detects the Dockerfile
+3. Deploy - it works out of the box!
+
+Railway provides `PORT=8080` and your app automatically binds to `0.0.0.0`.
+
+See [RAILWAY.md](RAILWAY.md) for more details.
+
+---
+
 ### 🎮 Game Search Setup
 
 #### Step 1: 🚀 Initial Setup

@@ -33,4 +33,8 @@ export const env = {
   isDevelopment: parsedEnv.data.NODE_ENV === "development",
   isProduction: parsedEnv.data.NODE_ENV === "production",
   isTest: parsedEnv.data.NODE_ENV === "test",
+  // Simple Railway detection - Railway sets PORT and expects 0.0.0.0
+  isRailway:
+    process.env.RAILWAY_ENVIRONMENT !== undefined ||
+    process.env.PORT === "8080",
 };
