@@ -1,15 +1,12 @@
 import { env } from "@/common/utils/envConfig";
 import { app, logger } from "@/server";
 
-// Simple host determination for Railway and other cloud providers
-const host = env.isRailway || env.isProduction ? "0.0.0.0" : env.HOST;
+// Simple host determination
+const host = env.isProduction ? "0.0.0.0" : env.HOST;
 
 const server = app.listen(env.PORT, host, () => {
   const { NODE_ENV, PORT } = env;
   logger.info(`Server (${NODE_ENV}) running on http://${host}:${PORT}`);
-  if (env.isRailway) {
-    logger.info("🚄 Railway deployment detected");
-  }
 });
 
 const onCloseSignal = () => {

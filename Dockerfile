@@ -17,11 +17,11 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY . .
 RUN pnpm run build
 
-# Final stage
+# Final stage - Optimized for Railway
 FROM node:23.11.1-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-# Map the PORT to 8080 (Matches Railway default)
+# Railway automatically sets PORT=8080, but we set it here as fallback
 ENV PORT=8080
 COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/dist ./dist

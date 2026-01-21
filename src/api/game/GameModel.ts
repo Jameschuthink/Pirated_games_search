@@ -5,7 +5,6 @@ export const GameSchema = z.object({
   id: z.string(),
   title: z.string(),
   source: z.string(),
-  // Allow both HTTP URLs and magnet links as fallback
   webpageUrl: z
     .string()
     .refine((val) => val.startsWith("http") || val.startsWith("magnet:"), {
